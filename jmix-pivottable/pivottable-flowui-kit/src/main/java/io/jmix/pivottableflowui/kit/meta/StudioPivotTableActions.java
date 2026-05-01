@@ -25,32 +25,16 @@ public interface StudioPivotTableActions {
             type = "pvttbl_showPivotTableAction",
             description = "Shows the Pivot Table component",
             classFqn = "io.jmix.pivottableflowui.action.ShowPivotTableAction",
-
-            properties = {
-                    @StudioProperty(xmlAttribute = "actionVariant", type = StudioPropertyType.ENUMERATION,
-                            setMethod = "setVariant", classFqn = "io.jmix.flowui.kit.action.ActionVariant",
-                            defaultValue = "DEFAULT", options = {"DEFAULT", "PRIMARY", "DANGER", "SUCCESS"}),
-                    @StudioProperty(xmlAttribute = "description", type = StudioPropertyType.LOCALIZED_STRING),
-                    @StudioProperty(xmlAttribute = "enabled", type = StudioPropertyType.BOOLEAN, defaultValue = "true"),
-                    @StudioProperty(xmlAttribute = "icon", type = StudioPropertyType.ICON, defaultValue = "SHIELD",
-                            setParameterFqn = "com.vaadin.flow.component.icon.Icon"),
-                    @StudioProperty(xmlAttribute = "id", type = StudioPropertyType.COMPONENT_ID, required = true,
-                            initialValue = "showPivotTable"),
-                    @StudioProperty(xmlAttribute = "shortcutCombination", type = StudioPropertyType.SHORTCUT_COMBINATION),
-                    @StudioProperty(xmlAttribute = "text", type = StudioPropertyType.LOCALIZED_STRING,
-                            defaultValue = "msg:///actions.showPivotAction.caption"),
-                    @StudioProperty(xmlAttribute = "visible", type = StudioPropertyType.BOOLEAN, defaultValue = "true")
-            },
+            propertyGroups = StudioPivotTablePropertyGroups.ShowPivotTableActionComponent.class,
             items = {
-                    @StudioPropertiesItem(xmlAttribute = "enabledByUiPermissions", type = StudioPropertyType.BOOLEAN,
+                    @StudioPropertiesItem(xmlAttribute = StudioXmlAttributes.ENABLED_BY_UI_PERMISSIONS, type = StudioPropertyType.BOOLEAN,
                             defaultValue = "true"),
-                    @StudioPropertiesItem(xmlAttribute = "visibleByUiPermissions", type = StudioPropertyType.BOOLEAN,
+                    @StudioPropertiesItem(xmlAttribute = StudioXmlAttributes.VISIBLE_BY_UI_PERMISSIONS, type = StudioPropertyType.BOOLEAN,
                             defaultValue = "true"),
-                    @StudioPropertiesItem(xmlAttribute = "openMode", type = StudioPropertyType.ENUMERATION,
+                    @StudioPropertiesItem(xmlAttribute = StudioXmlAttributes.OPEN_MODE, type = StudioPropertyType.ENUMERATION,
                             classFqn = "io.jmix.flowui.view.OpenMode", setParameterFqn = "io.jmix.flowui.view.OpenMode",
                             options = {"DIALOG", "NAVIGATION"})
             }
     )
     void showPivotTableAction();
 }
-

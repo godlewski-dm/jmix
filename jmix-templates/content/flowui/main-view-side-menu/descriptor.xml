@@ -8,17 +8,16 @@
         <action id="logoutAction" type="logout"/>
         <%}%>
     </actions>
-    <appLayout>
+    <appLayout classNames="jmix-main-view-app-layout">
         <navigationBar>
             <header id="header" classNames="jmix-main-view-header">
                 <drawerToggle id="drawerToggle"
                               classNames="jmix-main-view-drawer-toggle"
-                              themeNames="contrast"
                               ariaLabel="${messageKeys['drawerToggleAriaLabel']}"/>
                 <h1 id="viewTitle" classNames="jmix-main-view-title"/>
                 <%if (createUserMenu) {%>
                 <userMenu id="userMenu"
-                          themeNames="tertiary" classNames="ms-auto me-m">
+                          themeNames="tertiary" classNames="jmix-main-view-user-menu">
                     <items>
                         <separator/>
                         <actionItem id="substituteUserMenuItem"

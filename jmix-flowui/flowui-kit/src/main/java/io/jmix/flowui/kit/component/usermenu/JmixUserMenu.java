@@ -19,6 +19,7 @@ package io.jmix.flowui.kit.component.usermenu;
 import com.google.common.base.Preconditions;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.shared.HasThemeVariant;
 import com.vaadin.flow.dom.Element;
@@ -77,7 +78,7 @@ public class JmixUserMenu<USER> extends Composite<JmixMenuBar>
 
     @Override
     protected JmixMenuBar initContent() {
-        JmixMenuBar content = super.initContent();
+        JmixMenuBar content = new UserMenuMenuBar();
         content.getElement().setAttribute(ATTRIBUTE_JMIX_ROLE_NAME, ATTRIBUTE_JMIX_ROLE_VALUE);
 
         return content;
@@ -942,5 +943,16 @@ public class JmixUserMenu<USER> extends Composite<JmixMenuBar>
          * @return the {@link MenuItem} instance linked to this user menu item
          */
         MenuItem getItem();
+    }
+}
+
+@JsModule("./src/menubar/jmix-noncollapsible-menubar-connector.js")
+class UserMenuMenuBar extends JmixMenuBar {
+
+    @Override
+    protected void initConnector(String appId) {
+        super.initConnector(appId);
+
+        getElement().executeJs("window.Vaadin.Flow.nonCollapsibleMenubarConnector.initLazy(this)");
     }
 }

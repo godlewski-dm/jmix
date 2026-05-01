@@ -18,9 +18,9 @@ package io.jmix.flowui.kit.component.dropdownbutton;
 
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Hr;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.dom.ClassList;
 import com.vaadin.flow.dom.ThemeList;
 import com.vaadin.flow.shared.Registration;
@@ -57,6 +57,11 @@ public abstract class AbstractDropdownButton extends Composite<JmixMenuBar>
     protected Component iconComponent;
 
     protected abstract JmixMenuItem getDropdownItem();
+
+    @Override
+    protected JmixMenuBar initContent() {
+        return new DropdownButtonMenuBar();
+    }
 
     @Override
     public DropdownButtonItem addItem(String id, Action action) {
@@ -653,7 +658,7 @@ public abstract class AbstractDropdownButton extends Composite<JmixMenuBar>
         protected String text;
 
         public TextItemImpl(String id,
-                            @Nullable String text,
+                            String text,
                             DropdownButtonComponent parent,
                             MenuItemProvider<String> textMenuItemProvider) {
             super(id, textMenuItemProvider.createMenuItem(text), parent);
@@ -838,5 +843,16 @@ public abstract class AbstractDropdownButton extends Composite<JmixMenuBar>
         public Registration addClickListener(Consumer<ClickEvent> listener) {
             return null;
         }
+    }
+}
+
+@JsModule("./src/menubar/jmix-noncollapsible-menubar-connector.js")
+class DropdownButtonMenuBar extends JmixMenuBar {
+
+    @Override
+    protected void initConnector(String appId) {
+        super.initConnector(appId);
+
+        getElement().executeJs("window.Vaadin.Flow.nonCollapsibleMenubarConnector.initLazy(this)");
     }
 }

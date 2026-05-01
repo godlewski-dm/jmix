@@ -18,6 +18,7 @@ package io.jmix.flowui.component.gridcolumnvisibility;
 
 import com.google.common.base.Strings;
 import com.vaadin.flow.component.*;
+import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.icon.Icon;
@@ -101,7 +102,7 @@ public class JmixGridColumnVisibility extends Composite<JmixMenuBar>
 
     @Override
     protected JmixMenuBar initContent() {
-        JmixMenuBar menuBar = super.initContent();
+        JmixMenuBar menuBar = new ColumnVisibilityMenuBar();
         menuBar.getElement().setAttribute(ATTRIBUTE_JMIX_ROLE_NAME, ATTRIBUTE_JMIX_ROLE_VALUE);
         return menuBar;
     }
@@ -708,5 +709,16 @@ public class JmixGridColumnVisibility extends Composite<JmixMenuBar>
                 column.getGrid().recalculateColumnWidths();
             }
         }
+    }
+}
+
+@JsModule("./src/menubar/jmix-noncollapsible-menubar-connector.js")
+class ColumnVisibilityMenuBar extends JmixMenuBar {
+
+    @Override
+    protected void initConnector(String appId) {
+        super.initConnector(appId);
+
+        getElement().executeJs("window.Vaadin.Flow.nonCollapsibleMenubarConnector.initLazy(this)");
     }
 }
