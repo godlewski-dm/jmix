@@ -19,6 +19,7 @@ package io.jmix.flowui.view.template;
 import io.jmix.core.annotation.Experimental;
 import io.jmix.core.metamodel.model.MetaClass;
 import io.jmix.core.metamodel.model.MetaProperty;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.List;
 
@@ -26,6 +27,7 @@ import java.util.List;
  * Provides helper methods for view templates.
  */
 @Experimental
+@NullMarked
 public interface ViewTemplateHelper {
 
     /**
@@ -39,4 +41,17 @@ public interface ViewTemplateHelper {
      * @return filtered entity properties in metadata order
      */
     List<MetaProperty> getProperties(MetaClass metaClass, List<String> includeProperties, List<String> excludeProperties);
+
+    /**
+     * Returns composition collection properties that should be rendered as tabs by a detail view template.
+     * <p>
+     * Implementations return direct composition {@code *-to-many} properties, applying default filtering
+     * rules and then removing properties listed in {@code excludeProperties}. Association collections,
+     * datatype collections, and single-value properties are not returned.
+     *
+     * @param metaClass         entity metadata
+     * @param excludeProperties property names that must be excluded from the result
+     * @return filtered composition collection properties in metadata order
+     */
+    List<MetaProperty> getCollectionProperties(MetaClass metaClass, List<String> excludeProperties);
 }

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2026 Haulmont.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.jmix.datatools.datamodel.engine;
 
 import io.jmix.datatools.datamodel.RelationType;
@@ -5,10 +21,13 @@ import io.jmix.datatools.datamodel.entity.AttributeModel;
 
 import java.util.List;
 
+import org.jspecify.annotations.NullMarked;
+
 /**
  * Interface for constructing entity and relationship descriptions, as well as generating diagrams,
  * designed to work with a specific diagramming library.
  */
+@NullMarked
 public interface DiagramEngine {
 
     /**
@@ -48,4 +67,13 @@ public interface DiagramEngine {
      * @return {@code true} if the service is accessible, otherwise {@code false}.
      */
     boolean pingService();
+
+    /**
+     * Indicates whether diagram generation is permitted under the current configuration. Unlike {@link #pingService()},
+     * which checks network reachability, this reflects configuration and security policy. For example, generating
+     * diagrams via the public PlantUML server may be disabled when no private server is configured.
+     *
+     * @return {@code true} if diagram generation is allowed, otherwise {@code false}.
+     */
+    boolean isAvailable();
 }

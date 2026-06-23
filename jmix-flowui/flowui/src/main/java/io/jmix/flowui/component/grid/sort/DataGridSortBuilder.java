@@ -212,7 +212,7 @@ public class DataGridSortBuilder<E> {
                         createInMemorySortInfo(mpp.toPathString(), sortInfo.isAscending(), mpp, comparator));
             } else {
                 inMemorySortInfos.put(columnKey,
-                        createInMemorySortInfo(columnKey, true, null, comparator));
+                        createInMemorySortInfo(columnKey, sortInfo.isAscending(), null, comparator));
             }
         }
         return inMemorySortInfos;

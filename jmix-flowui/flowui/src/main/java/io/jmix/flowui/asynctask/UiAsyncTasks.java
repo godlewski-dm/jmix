@@ -1,9 +1,28 @@
+/*
+ * Copyright 2026 Haulmont.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.jmix.flowui.asynctask;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.server.Command;
+import io.jmix.core.impl.metadata.MetadataGeneration;
+import io.jmix.core.impl.metadata.MetadataGenerationManager;
+import io.jmix.core.impl.metadata.MetadataGenerationScope;
 import com.vaadin.flow.shared.Registration;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -69,9 +88,12 @@ public class UiAsyncTasks {
     private Function<Throwable, Void> defaultExceptionHandler;
 
     private final UiAsyncTaskProperties uiAsyncTaskProperties;
+    private final MetadataGenerationManager metadataGenerationManager;
 
-    public UiAsyncTasks(UiAsyncTaskProperties uiAsyncTaskProperties) {
+    public UiAsyncTasks(UiAsyncTaskProperties uiAsyncTaskProperties,
+                        MetadataGenerationManager metadataGenerationManager) {
         this.uiAsyncTaskProperties = uiAsyncTaskProperties;
+        this.metadataGenerationManager = metadataGenerationManager;
     }
 
     @PostConstruct
@@ -232,7 +254,12 @@ public class UiAsyncTasks {
          */
         public CompletableFuture<Void> supplyAsync() {
             DelegatingSecuritySupplier<T> wrappedSupplier = new DelegatingSecuritySupplier<>(asyncTask);
-            CompletableFuture<T> future = CompletableFuture.supplyAsync(wrappedSupplier, executorService);
+            MetadataGeneration generation = metadataGenerationManager.getPinnedOrCurrentGeneration();
+            CompletableFuture<T> future = CompletableFuture.supplyAsync(() -> {
+                try (MetadataGenerationScope ignored = metadataGenerationManager.enter(generation)) {
+                    return wrappedSupplier.get();
+                }
+            }, executorService);
             CompletableFuture<Void> resultCompletableFuture;
 
             if (resultHandler != null) {
@@ -305,7 +332,12 @@ public class UiAsyncTasks {
          */
         public CompletableFuture<Void> runAsync() {
             DelegatingSecurityRunnable wrappedRunnable = new DelegatingSecurityRunnable(asyncTask);
-            CompletableFuture<Void> future = CompletableFuture.runAsync(wrappedRunnable, executorService);
+            MetadataGeneration generation = metadataGenerationManager.getPinnedOrCurrentGeneration();
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                try (MetadataGenerationScope ignored = metadataGenerationManager.enter(generation)) {
+                    wrappedRunnable.run();
+                }
+            }, executorService);
             CompletableFuture<Void> resultCompletableFuture;
 
             if (resultHandler != null) {

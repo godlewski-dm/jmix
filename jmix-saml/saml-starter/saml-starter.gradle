@@ -15,7 +15,9 @@
  */
 
 group = 'io.jmix.saml'
-archivesBaseName = 'jmix-saml-starter'
+base {
+    archivesName = 'jmix-saml-starter'
+}
 
 repositories {
     maven {
@@ -32,4 +34,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-autoconfigure'
     implementation 'org.springframework.boot:spring-boot-starter-security-saml2'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-web'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

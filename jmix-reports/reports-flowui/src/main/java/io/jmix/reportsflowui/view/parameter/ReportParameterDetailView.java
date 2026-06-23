@@ -1,3 +1,19 @@
+/*
+ * Copyright 2026 Haulmont.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.jmix.reportsflowui.view.parameter;
 
 import com.vaadin.flow.component.AbstractField;
@@ -12,6 +28,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
+import io.jmix.core.CoreProperties;
 import io.jmix.core.MessageTools;
 import io.jmix.core.Messages;
 import io.jmix.core.Metadata;
@@ -36,6 +53,7 @@ import io.jmix.flowui.kit.icon.JmixFontIcon;
 import io.jmix.flowui.model.InstanceContainer;
 import io.jmix.flowui.view.*;
 import io.jmix.reports.ParameterClassResolver;
+import io.jmix.reports.ReportsProperties;
 import io.jmix.reports.entity.ParameterType;
 import io.jmix.reports.entity.PredefinedTransformation;
 import io.jmix.reports.entity.ReportInputParameter;
@@ -95,6 +113,14 @@ public class ReportParameterDetailView extends StandardDetailView<ReportInputPar
     protected InstanceContainer<ReportInputParameter> parameterDc;
     @ViewComponent
     protected TypedTextField<String> alias;
+    @ViewComponent
+    protected CodeEditor transformationScript;
+    @ViewComponent
+    protected CodeEditor validationScript;
+    @ViewComponent
+    protected Button fullScreenTransformationBtn;
+    @ViewComponent
+    protected Button fullScreenValidationBtn;
 
     @Autowired
     protected ParameterClassResolver parameterClassResolver;
@@ -122,6 +148,10 @@ public class ReportParameterDetailView extends StandardDetailView<ReportInputPar
     protected ParameterComponentGenerationStrategy parameterComponentGenerationStrategy;
     @Autowired
     protected ReportParamAliasValidator reportParamAliasValidator;
+    @Autowired
+    protected CoreProperties coreProperties;
+    @Autowired
+    protected ReportsProperties reportsProperties;
 
     @Subscribe
     public void onInit(InitEvent event) {
@@ -141,6 +171,7 @@ public class ReportParameterDetailView extends StandardDetailView<ReportInputPar
         }
         enableControlsByParamType(editedParam.getType());
         initTransformations();
+        updateGroovyEditorsState();
     }
 
     private void initParameterTypeField() {
@@ -181,6 +212,9 @@ public class ReportParameterDetailView extends StandardDetailView<ReportInputPar
 
     @Subscribe("fullScreenTransformationBtn")
     public void onFullScreenTransformationBtnClick(final ClickEvent<Button> event) {
+        if (!isReportsGroovyEnabled()) {
+            return;
+        }
         reportScriptEditor.create(this)
                 .withTitle(messages.getMessage("fullScreenBtn.title"))
                 .withValue(parameterDc.getItem().getTransformationScript())
@@ -207,6 +241,9 @@ public class ReportParameterDetailView extends StandardDetailView<ReportInputPar
 
     @Subscribe("fullScreenValidationBtn")
     public void onFullScreenValidationBtnClick(final ClickEvent<Button> event) {
+        if (!isReportsGroovyEnabled()) {
+            return;
+        }
         reportScriptEditor.create(this)
                 .withTitle(messages.getMessage("fullScreenBtn.title"))
                 .withValue(parameterDc.getItem().getValidationScript())
@@ -316,6 +353,20 @@ public class ReportParameterDetailView extends StandardDetailView<ReportInputPar
             initDefaultValueField();
             initCurrentDateTimeField();
         }
+
+        updateGroovyEditorsState();
+    }
+
+    protected boolean isReportsGroovyEnabled() {
+        return coreProperties.isUnsafeRuntimeFeaturesEnabled() && reportsProperties.isGroovyEnabled();
+    }
+
+    protected void updateGroovyEditorsState() {
+        boolean groovyEnabled = isReportsGroovyEnabled();
+        transformationScript.setReadOnly(isReadOnly() || !groovyEnabled);
+        validationScript.setReadOnly(isReadOnly() || !groovyEnabled);
+        fullScreenTransformationBtn.setEnabled(groovyEnabled);
+        fullScreenValidationBtn.setEnabled(groovyEnabled);
     }
 
     @Subscribe("isLookupField")

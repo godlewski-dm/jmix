@@ -228,6 +228,34 @@ class DataGridSortBuilderDelegateTest extends FlowuiTestSpecification {
         "Generated delegate db expr"                | GENERATED    | true        | DATABASE  | DELEGATE_EXPRESSION | SUPPORTED   | ["a", "b", "c"]
     }
 
+    def "SortBuilderDelegate: generated column descending sort direction is preserved with column comparator"() {
+        given:
+        def view = navigateToView(DataGridSortBuilderDelegateTestView)
+        def dataGrid = view.jpaDataGridInMemory as DataGrid<MainDsEntity>
+
+        view.setupColumnComparator(dataGrid, "noPropertyColumn")
+
+        when:
+        dataGrid.sort(GridSortOrder.desc(dataGrid.getColumnByKey("noPropertyColumn")).build())
+
+        then:
+        view.mainDsEntitiesDc1.items*.name == ["a", "b", "c"]
+    }
+
+    def "SortBuilderDelegate: generated column descending sort direction is preserved with delegate comparator"() {
+        given:
+        def view = navigateToView(DataGridSortBuilderDelegateTestView)
+        def dataGrid = view.jpaDataGridInMemory as DataGrid<MainDsEntity>
+
+        view.setupJpaSortBuilderDelegate(dataGrid, "noPropertyColumn", true, false)
+
+        when:
+        dataGrid.sort(GridSortOrder.desc(dataGrid.getColumnByKey("noPropertyColumn")).build())
+
+        then:
+        view.mainDsEntitiesDc1.items*.name == ["a", "b", "c"]
+    }
+
     private enum SortMode {
         IN_MEMORY,
         DATABASE

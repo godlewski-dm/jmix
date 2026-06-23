@@ -18,7 +18,9 @@ apply plugin: 'groovy'
 apply plugin: 'io.jmix'
 
 group = 'io.jmix.reports'
-archivesBaseName = 'jmix-reports'
+base {
+    archivesName = 'jmix-reports'
+}
 
 dependencies {
     api project(':core')
@@ -27,8 +29,6 @@ dependencies {
     api project(':eclipselink')
 
     compileOnly project(':dynattr')
-
-    api 'com.thoughtworks.xstream:xstream'
 
     api 'org.apache.groovy:groovy-templates'
 

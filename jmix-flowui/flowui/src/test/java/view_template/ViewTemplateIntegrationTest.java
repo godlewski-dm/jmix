@@ -45,6 +45,7 @@ import io.jmix.flowui.view.ViewRegistry;
 import io.jmix.flowui.view.navigation.ViewNavigationSupport;
 import io.jmix.flowui.view.template.impl.TemplateDetailView;
 import io.jmix.flowui.view.template.impl.TemplateListView;
+import io.jmix.flowui.view.template.impl.ViewTemplateDefinitions;
 import io.jmix.flowui.view.template.impl.ViewTemplateDescriptorRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +78,10 @@ public class ViewTemplateIntegrationTest {
     protected static final String FILTERED_DETAIL_VIEW_ID = "test_ViewTemplateFilteringEntity.edit";
     protected static final String BINDINGS_LIST_VIEW_ID = "test_ViewTemplateBindingsEntity.list";
     protected static final String BINDINGS_DETAIL_VIEW_ID = "test_ViewTemplateBindingsEntity.detail";
+    protected static final String MASTER_DETAIL_VIEW_ID = "test_ViewTemplateMasterEntity.detail";
+    protected static final String LINE_DETAIL_VIEW_ID = "test_ViewTemplateLineEntity.detail";
+    protected static final String MSG_TITLE_LIST_VIEW_ID = "test_ViewTemplateMsgTitleEntity.list";
+    protected static final String MSG_TITLE_DETAIL_VIEW_ID = "test_ViewTemplateMsgTitleEntity.detail";
     protected static final String LIST_VIEW_ROUTE = "templates/view-template/list";
     protected static final String DETAIL_VIEW_BASE_ROUTE = "templates/view-template/detail";
     protected static final String DETAIL_VIEW_ROUTE = DETAIL_VIEW_BASE_ROUTE + "/:id";
@@ -107,6 +112,25 @@ public class ViewTemplateIntegrationTest {
 
     @Autowired
     DataManager dataManager;
+
+    @Autowired
+    ViewTemplateDefinitions viewTemplateDefinitions;
+    @Autowired
+    ViewTemplateDescriptorRegistry viewTemplateDescriptorRegistry;
+
+    @Test
+    void testRefreshRerendersDescriptorFromCurrentMetadata() {
+        String path = viewTemplateDescriptorRegistry.createPath(LIST_VIEW_ID);
+        String before = viewTemplateDescriptorRegistry.getDescriptor(path).orElseThrow();
+
+        viewTemplateDefinitions.refresh();
+
+        String after = viewTemplateDescriptorRegistry.getDescriptor(path).orElseThrow();
+        // Metadata is unchanged in this test, so a re-render must reproduce the same descriptor.
+        assertEquals(before, after);
+        assertTrue(viewTemplateDefinitions.getDefinitions().stream()
+                .anyMatch(definition -> LIST_VIEW_ID.equals(definition.getId())));
+    }
 
     @Test
     void testTemplateViewsRegisteredInViewRegistry() {
@@ -193,6 +217,26 @@ public class ViewTemplateIntegrationTest {
     }
 
     @Test
+    void testViewTitleResolvedFromMessageBundle() {
+        // List view uses the full reference format: msg://group/key
+        View<?> listView = views.create(MSG_TITLE_LIST_VIEW_ID);
+        assertEquals("Localized list title", listView.getPageTitle());
+
+        // Detail view uses the brief reference format: msg://key, resolved against the entity package
+        View<?> detailView = views.create(MSG_TITLE_DETAIL_VIEW_ID);
+        assertEquals("Localized detail title", detailView.getPageTitle());
+    }
+
+    @Test
+    void testMenuItemTitleResolvedFromMessageBundle() {
+        MenuItem listItem = findMenuItemByView(MSG_TITLE_LIST_VIEW_ID).orElseThrow();
+        assertEquals("Localized list title", menuConfig.getItemTitle(listItem));
+
+        MenuItem detailItem = findMenuItemByView(MSG_TITLE_DETAIL_VIEW_ID).orElseThrow();
+        assertEquals("Localized detail title", menuConfig.getItemTitle(detailItem));
+    }
+
+    @Test
     void testDefaultTemplatesExcludeTechnicalProperties() {
         String listDescriptor = getDescriptor(LIST_VIEW_ID);
         String detailDescriptor = getDescriptor(DETAIL_VIEW_ID);
@@ -253,6 +297,56 @@ public class ViewTemplateIntegrationTest {
         assertTrue(listDescriptor.contains("action=\"dataGrid.removeAction\""));
 
         assertTrue(detailDescriptor.contains("<instance id=\"entityDc\""));
+        assertTrue(detailDescriptor.contains("<formLayout id=\"form\" dataContainer=\"entityDc\""));
+    }
+
+    @Test
+    void testDetailTemplateRendersCompositionCollectionsAsTabSheet() {
+        String detailDescriptor = getDescriptor(MASTER_DETAIL_VIEW_ID);
+
+        // Composition collection is fetched and gets a nested container
+        assertTrue(detailDescriptor.contains("<property name=\"lines\" fetchPlan=\"_base\"/>"));
+        assertTrue(detailDescriptor.contains("<collection id=\"linesDc\" property=\"lines\"/>"));
+
+        // TabSheet with a general tab holding the form
+        assertTrue(detailDescriptor.contains("<tabSheet id=\"contentTabSheet\""));
+        assertTrue(detailDescriptor.contains(
+                "<tab id=\"generalTab\" label=\"msg:///viewTemplate.generalTab\""));
+        assertTrue(detailDescriptor.contains("<formLayout id=\"form\" dataContainer=\"entityDc\""));
+
+        // Collection tab with a dataGrid, list actions and line-entity columns
+        assertTrue(detailDescriptor.contains("<tab id=\"linesTab\" "
+                + "label=\"msg://test_support.entity.viewtemplate/ViewTemplateMasterEntity.lines\""));
+        assertTrue(detailDescriptor.contains("<hbox id=\"linesButtonsPanel\""));
+        assertTrue(detailDescriptor.contains("<dataGrid id=\"linesDataGrid\""));
+        assertTrue(detailDescriptor.contains("dataContainer=\"linesDc\""));
+        assertTrue(detailDescriptor.contains("<action id=\"createAction\" type=\"list_create\">"));
+        assertTrue(detailDescriptor.contains("<action id=\"editAction\" type=\"list_edit\">"));
+        assertTrue(detailDescriptor.contains("<action id=\"removeAction\" type=\"list_remove\"/>"));
+        assertTrue(detailDescriptor.contains("<property name=\"openMode\" value=\"DIALOG\"/>"));
+        assertTrue(detailDescriptor.contains("<column property=\"description\"/>"));
+        assertTrue(detailDescriptor.contains("<column property=\"quantity\"/>"));
+        assertFalse(detailDescriptor.contains("<column property=\"master\"/>"));
+
+        // Association collection is NOT rendered
+        assertFalse(detailDescriptor.contains("relatedCustomers"));
+    }
+
+    @Test
+    void testCompositionItemDetailTemplateHidesInverseAttribute() {
+        String detailDescriptor = getDescriptor(LINE_DETAIL_VIEW_ID);
+
+        // Composition back-reference to the master must not be rendered as a field
+        assertFalse(detailDescriptor.contains("id=\"masterField\""));
+        assertTrue(detailDescriptor.contains("id=\"descriptionField\""));
+        assertTrue(detailDescriptor.contains("id=\"quantityField\""));
+    }
+
+    @Test
+    void testDetailTemplateWithoutCollectionsHasNoTabSheet() {
+        String detailDescriptor = getDescriptor(DETAIL_VIEW_ID);
+
+        assertFalse(detailDescriptor.contains("<tabSheet"));
         assertTrue(detailDescriptor.contains("<formLayout id=\"form\" dataContainer=\"entityDc\""));
     }
 
@@ -380,6 +474,13 @@ public class ViewTemplateIntegrationTest {
     protected Optional<MenuItem> findChildItem(MenuItem parentItem, String id) {
         return parentItem.getChildren().stream()
                 .filter(item -> id.equals(item.getId()))
+                .findFirst();
+    }
+
+    protected Optional<MenuItem> findMenuItemByView(String viewId) {
+        return menuConfig.getRootItems().stream()
+                .flatMap(rootItem -> rootItem.getChildren().stream())
+                .filter(item -> viewId.equals(item.getView()))
                 .findFirst();
     }
 

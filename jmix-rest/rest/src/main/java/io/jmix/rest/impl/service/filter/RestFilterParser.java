@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2019 Haulmont.
+ * Copyright 2019 Haulmont.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -226,8 +226,15 @@ public class RestFilterParser {
             }
             condition.setParameterValue(value);
         } else {
-            if (op == RestFilterOp.IS_NULL) condition.setParameterValue(false);
-            if (op == RestFilterOp.NOT_EMPTY) condition.setParameterValue(true);
+            // IS_NULL and NOT_EMPTY operators both map to the IS_SET operation whose parameter value is
+            // 'true' when the property must be set (not null) and 'false' otherwise. The boolean value may
+            // be passed explicitly, e.g. 'notEmpty' with value 'false' to find entities with the empty property.
+            boolean notEmpty = op == RestFilterOp.NOT_EMPTY;
+            if (valueJsonElem != null) {
+                condition.setParameterValue(notEmpty == valueJsonElem.getAsBoolean());
+            } else {
+                condition.setParameterValue(notEmpty);
+            }
         }
 
 

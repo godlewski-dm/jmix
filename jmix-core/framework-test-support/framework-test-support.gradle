@@ -17,7 +17,15 @@
 apply plugin: 'io.jmix'
 
 group = 'io.jmix.core'
-archivesBaseName = 'jmix-framework-test-support'
+base {
+    archivesName = 'jmix-framework-test-support'
+}
+
+jmix {
+    entitiesEnhancing {
+        enabled = false
+    }
+}
 
 dependencies {
     api project(':core')
@@ -27,8 +35,3 @@ dependencies {
     api 'org.apache.commons:commons-dbcp2'
     api 'org.liquibase:liquibase-core'
 }
-
-tasks.matching { it.name in ['enhanceJmixMain', 'copyJmixEnhancingResourcesMain'] }
-        .configureEach {
-            enabled = false
-        }

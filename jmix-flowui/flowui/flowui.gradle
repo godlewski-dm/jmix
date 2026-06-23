@@ -19,7 +19,9 @@ apply plugin: 'io.jmix'
 
 
 group = 'io.jmix.flowui'
-archivesBaseName = 'jmix-flowui'
+base {
+    archivesName = 'jmix-flowui'
+}
 
 dependencies {
     api project(':core')
@@ -37,6 +39,8 @@ dependencies {
     testImplementation 'org.spockframework:spock-core'
     testImplementation 'org.spockframework:spock-spring'
     testImplementation 'org.springframework.boot:spring-boot-test'
+    testImplementation 'io.micrometer:micrometer-observation-test'
+    testImplementation 'io.micrometer:micrometer-registry-prometheus'
 
     testImplementation project(':flowui-test-assist')
     testImplementation project(':framework-test-support')

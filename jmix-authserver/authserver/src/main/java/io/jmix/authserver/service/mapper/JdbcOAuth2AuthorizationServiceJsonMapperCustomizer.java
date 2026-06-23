@@ -16,6 +16,7 @@
 
 package io.jmix.authserver.service.mapper;
 
+import org.jspecify.annotations.NullMarked;
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -24,7 +25,7 @@ import tools.jackson.databind.json.JsonMapper;
  *
  * These customizers will be applied at the last step of {@link JsonMapper} configuration.
  */
-// TODO [SB4] Renamed from JdbcOAuth2AuthorizationServiceObjectMapperCustomizer.
+@NullMarked
 public interface JdbcOAuth2AuthorizationServiceJsonMapperCustomizer {
 
     void customize(JsonMapper.Builder jsonMapperBuilder);
